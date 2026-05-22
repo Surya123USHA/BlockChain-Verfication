@@ -1,0 +1,99 @@
+// Certificate Verification System - Frontend JavaScript
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Certificate Verification System Loaded');
+    
+    // Form validation
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const inputs = form.querySelectorAll('input[required]');
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.style.borderColor = 'red';
+                } else {
+                    input.style.borderColor = '#ddd';
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+            }
+        });
+    });
+    
+    // Auto-hide flash messages after 5 seconds
+    const flashMessages = document.querySelectorAll('.alert');
+    flashMessages.forEach(message => {
+        setTimeout(() => {
+            message.style.opacity = '0';
+            setTimeout(() => message.remove(), 300);
+        }, 5000);
+    });
+    
+    // Copy hash to clipboard
+    const hashCells = document.querySelectorAll('.hash-cell, .hash-display');
+    hashCells.forEach(cell => {
+        cell.style.cursor = 'pointer';
+        cell.title = 'Click to copy';
+        
+        cell.addEventListener('click', function() {
+            const text = this.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    });
+    
+    // QR Code modal (if needed)
+    const qrLinks = document.querySelectorAll('a[href*="qrcodes"]');
+    qrLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const imgUrl = this.href;
+            showQRModal(imgUrl);
+        });
+    });
+});
+
+function showQRModal(imgUrl) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    `;
+    
+    const img = document.createElement('img');
+    img.src = imgUrl;
+    img.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 10px;';
+    
+    modal.appendChild(img);
+    document.body.appendChild(modal);
+    
+    modal.addEventListener('click', () => modal.remove());
+}
+
+// Hash generation preview (for testing)
+function generateHashPreview(studentName, course, grade) {
+    const data = studentName + course + grade;
+    return sha256(data);
+}
+
+// Simple SHA-256 implementation would require crypto library
+// In production, this is handled by backend

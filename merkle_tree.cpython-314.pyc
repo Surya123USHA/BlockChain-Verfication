@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Certificate Verification{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-box">
+        <div class="login-header">
+            <i class="fas fa-shield-alt fa-3x"></i>
+            <h2>Blockchain Certificate Verification</h2>
+            <p class="subtitle">Secure Login Portal</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label for="username"><i class="fas fa-user"></i> Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="password"><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </form>
+        
+        <div class="demo-credentials">
+            <p class="demo-title"><i class="fas fa-info-circle"></i> Demo Credentials</p>
+            <div class="credentials-grid">
+                <div class="credential-card">
+                    <i class="fas fa-user-shield"></i>
+                    <p><strong>Admin</strong></p>
+                    <p class="cred-text">admin / admin123</p>
+                </div>
+                <div class="credential-card">
+                    <i class="fas fa-user-check"></i>
+                    <p><strong>Verifier</strong></p>
+                    <p class="cred-text">verifier / verify123</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

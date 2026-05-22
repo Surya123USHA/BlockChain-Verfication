@@ -1,0 +1,43 @@
+"""
+Firebase Configuration for Certificate Verification System
+"""
+import firebase_admin
+from firebase_admin import credentials, firestore, auth
+import os
+
+# Initialize Firebase Admin SDK
+def initialize_firebase():
+    """
+    Initialize Firebase with service account credentials.
+    Place your firebase-credentials.json in the backend folder.
+    """
+    try:
+        cred_path = os.path.join(os.path.dirname(__file__), 'blockchain-3b45a-firebase-adminsdk-fbsvc-ebc1d557b1.json')
+        
+        if not os.path.exists(cred_path):
+            print("⚠️  Warning: firebase-credentials.json not found!")
+            print("Please download your Firebase service account key and save it as:")
+            print(f"   {cred_path}")
+            return None
+        
+        cred = credentials.Certificate(cred_path)
+        firebase_admin.initialize_app(cred)
+        print("✅ Firebase initialized successfully!")
+        return firestore.client()
+    except Exception as e:
+        print(f"❌ Firebase initialization error: {e}")
+        return None
+
+# Get Firestore client
+db = None
+try:
+    db = initialize_firebase()
+except:
+    pass
+
+def get_db():
+    """Get Firestore database instance"""
+    global db
+    if db is None:
+        db = initialize_firebase()
+    return db

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2><i class="fas fa-user-shield"></i> Admin Dashboard - Issue Certificate</h2>
+    
+    <div class="dashboard-grid">
+        <div class="form-section">
+            <h3><i class="fas fa-certificate"></i> Issue New Certificate</h3>
+            <form method="POST" action="{{ url_for('admin_dashboard') }}">
+                <div class="form-group">
+                    <label for="student_name"><i class="fas fa-user-graduate"></i> Student Name</label>
+                    <input type="text" id="student_name" name="student_name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="course"><i class="fas fa-book"></i> Course</label>
+                    <input type="text" id="course" name="course" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="grade"><i class="fas fa-award"></i> Grade</label>
+                    <input type="text" id="grade" name="grade" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Issue Certificate</button>
+            </form>
+        </div>
+        
+        <div class="info-section">
+            <h3><i class="fas fa-info-circle"></i> How It Works</h3>
+            <ol>
+                <li><i class="fas fa-edit"></i> Enter student details</li>
+                <li><i class="fas fa-lock"></i> System generates SHA-256 hash</li>
+                <li><i class="fas fa-cube"></i> Hash stored on blockchain</li>
+                <li><i class="fas fa-project-diagram"></i> Merkle Tree root updated</li>
+                <li><i class="fas fa-qrcode"></i> QR code generated</li>
+                <li><i class="fas fa-check-circle"></i> Certificate ready for verification</li>
+            </ol>
+            
+            {% if merkle_info %}
+            <div class="merkle-root-info">
+                <h4><i class="fas fa-tree"></i> Current Merkle Root</h4>
+                <p class="hash-display">{{ merkle_info.root_hash[:32] }}...</p>
+                <p><small><i class="fas fa-certificate"></i> Certificates: {{ merkle_info.certificate_count }} | <i class="fas fa-clock"></i> Updated: {{ merkle_info.created_at }}</small></p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="certificates-list">
+        <h3><i class="fas fa-list"></i> Issued Certificates</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Student Name</th>
+                    <th>Course</th>
+                    <th>Grade</th>
+                    <th>Hash</th>
+                    <th>Issue Date</th>
+                    <th>QR Code</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cert in certificates %}
+                <tr>
+                    <td>{{ cert.id }}</td>
+                    <td>{{ cert.student_name }}</td>
+                    <td>{{ cert.course }}</td>
+                    <td>{{ cert.grade }}</td>
+                    <td class="hash-cell">{{ cert.cert_hash[:16] }}...</td>
+                    <td>{{ cert.issue_date }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-qr" onclick="showQR('{{ cert.cert_hash }}', '{{ cert.student_name }}', '{{ cert.course }}')">
+                                <i class="fas fa-qrcode"></i> View
+                            </button>
+                            <a href="{{ url_for('download_qr', cert_hash=cert.cert_hash) }}" class="btn-download">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ url_for('delete_certificate', cert_id=cert.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this certificate?');">
+                            <button type="submit" class="btn-delete"><i class="fas fa-trash"></i> Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div id="qrModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeQR()">&times;</span>
+        <h3 id="qrTitle"><i class="fas fa-qrcode"></i> Certificate QR Code</h3>
+        <div class="qr-container">
+            <img id="qrImage" src="" alt="QR Code">
+        </div>
+        <p id="qrInfo"></p>
+        <button class="btn btn-primary" onclick="downloadQR()"><i class="fas fa-download"></i> Download QR Code</button>
+    </div>
+</div>
+
+<script>
+let currentHash = '';
+
+function showQR(hash, studentName, course) {
+    currentHash = hash;
+    document.getElementById('qrImage').src = "{{ url_for('static', filename='qrcodes/') }}" + hash + ".png";
+    document.getElementById('qrTitle').innerHTML = '<i class="fas fa-qrcode"></i> Certificate QR Code';
+    document.getElementById('qrInfo').textContent = `Student: ${studentName} | Course: ${course}`;
+    document.getElementById('qrModal').style.display = 'block';
+}
+
+function closeQR() {
+    document.getElementById('qrModal').style.display = 'none';
+}
+
+function downloadQR() {
+    window.location.href = "{{ url_for('download_qr', cert_hash='HASH_PLACEHOLDER') }}".replace('HASH_PLACEHOLDER', currentHash);
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('qrModal');
+    if (event.target == modal) {
+        closeQR();
+    }
+}
+</script>
+
+{% endblock %}

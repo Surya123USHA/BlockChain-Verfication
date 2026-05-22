@@ -1,0 +1,63 @@
+"""
+QR Code Decoder for Certificate Verification
+"""
+import cv2
+from pyzbar import pyzbar
+from PIL import Image
+import numpy as np
+
+def decode_qr_from_file(file_path):
+    """
+    Decode QR code from an image file
+    Args:
+        file_path: Path to the QR code image
+    Returns:
+        Decoded hash string or None if decoding fails
+    """
+    try:
+        # Read image using OpenCV
+        image = cv2.imread(file_path)
+        
+        if image is None:
+            # Try with PIL if OpenCV fails
+            pil_image = Image.open(file_path)
+            image = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+        
+        # Decode QR codes in the image
+        decoded_objects = pyzbar.decode(image)
+        
+        if decoded_objects:
+            # Return the first decoded QR code data
+            return decoded_objects[0].data.decode('utf-8')
+        
+        return None
+    except Exception as e:
+        print(f"Error decoding QR code: {str(e)}")
+        return None
+
+def decode_qr_from_upload(file_storage):
+    """
+    Decode QR code from uploaded file
+    Args:
+        file_storage: Flask FileStorage object
+    Returns:
+        Decoded hash string or None if decoding fails
+    """
+    try:
+        # Read image from file storage
+        file_bytes = np.frombuffer(file_storage.read(), np.uint8)
+        image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+        
+        if image is None:
+            return None
+        
+        # Decode QR codes in the image
+        decoded_objects = pyzbar.decode(image)
+        
+        if decoded_objects:
+            return decoded_objects[0].data.decode('utf-8')
+        
+        return None
+    except Exception as e:
+        print(f"Error decoding QR code: {str(e)}")
+        return None

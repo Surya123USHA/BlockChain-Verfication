@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+    <h2>Welcome to Blockchain Certificate Verification System</h2>
+    <p>A secure, decentralized platform for issuing and verifying academic certificates</p>
+    
+    <div class="features">
+        <div class="feature-card">
+            <h3>🔒 Secure</h3>
+            <p>Certificates stored on blockchain with SHA-256 hashing</p>
+        </div>
+        <div class="feature-card">
+            <h3>⚡ Fast</h3>
+            <p>Instant verification using smart contracts</p>
+        </div>
+        <div class="feature-card">
+            <h3>🌐 Decentralized</h3>
+            <p>No single point of failure</p>
+        </div>
+    </div>
+
+    <div class="cta-buttons">
+        <a href="{{ url_for('login') }}" class="btn btn-primary">Admin Login</a>
+        <a href="{{ url_for('verifier_dashboard') }}" class="btn btn-secondary">Verify Certificate</a>
+    </div>
+</div>
+
+<div class="info-section">
+    <h3>How It Works</h3>
+    <ol>
+        <li>Institution issues certificate</li>
+        <li>System generates SHA-256 hash</li>
+        <li>Hash stored on blockchain</li>
+        <li>Student receives QR code</li>
+        <li>Anyone can verify certificate authenticity</li>
+    </ol>
+</div>
+{% endblock %}

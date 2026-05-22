@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2>Student Dashboard</h2>
+    
+    <div class="student-section">
+        <h3>Your Certificates</h3>
+        <p>View and download your certificates</p>
+        
+        <div class="certificate-card">
+            <h4>Certificate Features</h4>
+            <ul>
+                <li>View certificate details</li>
+                <li>Download QR code</li>
+                <li>Share verification link</li>
+                <li>Blockchain verified</li>
+            </ul>
+        </div>
+        
+        <div class="info-box">
+            <p>This section can be extended to show student-specific certificates by implementing authentication and filtering.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

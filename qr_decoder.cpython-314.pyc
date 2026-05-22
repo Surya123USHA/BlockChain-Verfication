@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Certificate{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2><i class="fas fa-check-double"></i> Certificate Verification</h2>
+    
+    {% if result %}
+    <!-- Show Results -->
+    <div class="verify-section">
+        <div class="result-section {{ result.status }}">
+            <h3>Verification Result</h3>
+            <div class="result-message">
+                <p class="status-icon">
+                    {% if result.status == 'valid' %}
+                        <i class="fas fa-check-circle fa-4x" style="color: #28a745;"></i>
+                    {% else %}
+                        <i class="fas fa-times-circle fa-4x" style="color: #dc3545;"></i>
+                    {% endif %}
+                </p>
+                <p class="status-text">{{ result.message }}</p>
+            </div>
+            
+            <div class="result-details">
+                <p><strong>Certificate Hash:</strong></p>
+                <p class="hash-display">{{ result.hash }}</p>
+                
+                {% if result.merkle %}
+                <div class="merkle-info">
+                    <h4><i class="fas fa-project-diagram"></i> Merkle Tree Verification</h4>
+                    <p><strong>Status:</strong> 
+                        {% if result.merkle.valid %}
+                            <span class="badge-success"><i class="fas fa-check"></i> Valid</span>
+                        {% else %}
+                            <span class="badge-error"><i class="fas fa-times"></i> Invalid</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Merkle Root:</strong></p>
+                    <p class="hash-display">{{ result.merkle.root_hash[:32] }}...</p>
+                    <p><strong>Proof Path Length:</strong> {{ result.merkle.proof_length }} nodes</p>
+                </div>
+                {% endif %}
+                
+                {% if result.details %}
+                <div class="cert-details">
+                    <h4>Certificate Details</h4>
+                    <p><strong>Student:</strong> {{ result.details.student_name }}</p>
+                    <p><strong>Course:</strong> {{ result.details.course }}</p>
+                    <p><strong>Grade:</strong> {{ result.details.grade }}</p>
+                    <p><strong>Issue Date:</strong> {{ result.details.issue_date }}</p>
+                    <div style="margin-top: 1rem;">
+                        <a href="{{ url_for('download_qr', cert_hash=result.hash) }}" class="btn btn-primary">
+                            <i class="fas fa-download"></i> Download QR Code
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 2rem; text-align: center;">
+                <a href="{{ url_for('verifier_dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i> Verify Another Certificate
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- Show Verification Forms -->
+    <div class="verify-section">
+        <div class="form-section">
+            <h3>Method 1: Upload QR Code Image</h3>
+            <form method="POST" action="{{ url_for('verifier_dashboard') }}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="qr_image"><i class="fas fa-upload"></i> Upload QR Code Image</label>
+                    <input type="file" id="qr_image" name="qr_image" accept="image/*" class="file-input">
+                    <div class="file-upload-box" id="uploadBox">
+                        <div class="upload-icon"><i class="fas fa-camera fa-3x"></i></div>
+                        <p>Click to upload or drag & drop QR code image</p>
+                        <p class="file-info">Supports: PNG, JPG, JPEG, GIF, BMP</p>
+                    </div>
+                    <div id="imagePreview" class="image-preview"></div>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-check-circle"></i> Verify by QR Image</button>
+            </form>
+            
+            <div class="divider">
+                <span>OR</span>
+            </div>
+            
+            <h3>Method 2: Enter Hash Manually</h3>
+            <form method="POST" action="{{ url_for('verifier_dashboard') }}">
+                <div class="form-group">
+                    <label for="qr_hash"><i class="fas fa-hashtag"></i> Certificate Hash</label>
+                    <input type="text" id="qr_hash" name="qr_hash" placeholder="Paste certificate hash (64 characters)">
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-check-circle"></i> Verify by Hash</button>
+            </form>
+            
+            <div class="divider">
+                <span>OR</span>
+            </div>
+            
+            <h3>Method 3: Enter Certificate Details</h3>
+            <form method="POST" action="{{ url_for('verifier_dashboard') }}">
+                <div class="form-group">
+                    <label for="student_name"><i class="fas fa-user-graduate"></i> Student Name</label>
+                    <input type="text" id="student_name" name="student_name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="course"><i class="fas fa-book"></i> Course</label>
+                    <input type="text" id="course" name="course">
+                </div>
+                
+                <div class="form-group">
+                    <label for="grade"><i class="fas fa-award"></i> Grade</label>
+                    <input type="text" id="grade" name="grade">
+                </div>
+                
+                <button type="submit" class="btn btn-primary"><i class="fas fa-check-circle"></i> Verify by Details</button>
+            </form>
+        </div>
+        
+        <div class="info-section">
+            <h3>Verification Methods</h3>
+            <ol>
+                <li><strong>QR Image Upload:</strong> Upload the QR code image directly</li>
+                <li><strong>Hash Entry:</strong> Paste the 64-character hash manually</li>
+                <li><strong>Manual Details:</strong> Enter exact certificate details (name, course, grade)</li>
+            </ol>
+            <p class="note">All methods use Merkle Tree verification for enhanced security and efficiency.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// File upload preview
+const fileInput = document.getElementById('qr_image');
+const uploadBox = document.getElementById('uploadBox');
+const imagePreview = document.getElementById('imagePreview');
+
+if (fileInput && uploadBox) {
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.innerHTML = `
+                    <img src="${e.target.result}" alt="QR Code Preview">
+                    <p class="file-name">${file.name}</p>
+                    <button type="button" class="btn-cancel" onclick="cancelUpload()">
+                        <i class="fas fa-times"></i> Remove Image
+                    </button>
+                `;
+                imagePreview.style.display = 'block';
+                uploadBox.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Drag and drop
+    uploadBox.addEventListener('click', () => fileInput.click());
+    
+    uploadBox.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadBox.style.borderColor = '#667eea';
+        uploadBox.style.background = '#f0f4ff';
+    });
+    
+    uploadBox.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadBox.style.borderColor = '#ddd';
+        uploadBox.style.background = '#f8f9fa';
+    });
+    
+    uploadBox.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadBox.style.borderColor = '#ddd';
+        uploadBox.style.background = '#f8f9fa';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            fileInput.dispatchEvent(new Event('change'));
+        }
+    });
+}
+
+function cancelUpload() {
+    // Clear the file input
+    fileInput.value = '';
+    
+    // Hide preview and show upload box
+    imagePreview.style.display = 'none';
+    imagePreview.innerHTML = '';
+    uploadBox.style.display = 'block';
+}
+</script>
+
+{% endblock %}
